@@ -6,6 +6,11 @@ let selectedCards = [];
 let canClick = true;
 let totalPairs = 10;
 let matchedCount = 0;
+let gameState = "notStarted"; // Estados: notStarted, playing, won
+
+// Referencias a botones
+const startButton = document.getElementById("startButton");
+const restartButton = document.getElementById("restartButton");
 
 // Clase Card
 class Card {
@@ -29,7 +34,7 @@ class Card {
         image(this.image, this.x, this.y, cardWidth, cardHeight);
       }
     } else {
-      // Si no, se muestra la parte trasera
+      // Parte trasera de la carta
       fill(150);
       rect(this.x, this.y, cardWidth, cardHeight);
       fill(255);
@@ -45,9 +50,47 @@ class Card {
   }
 }
 
-// p5.js setup: crea el canvas y carga las cartas
+// p5.js setup: crea el canvas
 function setup() {
-  createCanvas(cols * cardWidth + 20, rows * cardHeight + 20);
+  // Creamos un canvas con un margen para centrarlo
+  let canvas = createCanvas(cols * cardWidth + 20, rows * cardHeight + 20);
+  canvas.parent(document.body);
+}
+
+// p5.js draw: se dibuja el fondo y las cartas según el estado del juego
+function draw() {
+  background(220);
+  
+  if (gameState === "playing" || gameState === "won") {
+    for (let card of cards) {
+      card.draw();
+    }
+  }
+  
+  // Si el juego ha finalizado, se muestra el mensaje de victoria y el botón de reiniciar
+  if (gameState === "won") {
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    fill(0);
+    text("¡Ganaste!", width / 2, height / 2);
+    restartButton.style.display = "inline-block";
+  }
+}
+
+// Función para iniciar/reiniciar el juego
+function startGame() {
+  // Reiniciamos variables globales
+  cards = [];
+  selectedCards = [];
+  matchedCount = 0;
+  canClick = true;
+  gameState = "playing";
+  
+  // Ocultamos los botones de inicio/reinicio
+  startButton.style.display = "none";
+  restartButton.style.display = "none";
+  
+  // Cargamos las cartas
   loadPokemonCards();
 }
 
@@ -62,7 +105,7 @@ async function loadPokemonCards() {
     }
   }
   
-  // Se hace fetch a la API para cada Pokémon y se obtiene la URL de la imagen (sprites.front_default)
+  // Obtenemos la URL de la imagen de cada Pokémon (sprites.front_default)
   let promises = ids.map(async (id) => {
     let url = `https://pokeapi.co/api/v2/pokemon/${id}/`;
     let response = await fetch(url);
@@ -83,9 +126,9 @@ async function loadPokemonCards() {
     tempCards.push(card1, card2);
   }
   
-  // Se mezclan aleatoriamente las cartas
+  // Mezclamos las cartas aleatoriamente
   shuffleArray(tempCards);
-  // Se asignan posiciones en una cuadrícula
+  // Asignamos posiciones en una cuadrícula
   for (let i = 0; i < tempCards.length; i++) {
     let col = i % cols;
     let row = floor(i / cols);
@@ -95,26 +138,11 @@ async function loadPokemonCards() {
   cards = tempCards;
 }
 
-// p5.js draw: se dibujan las cartas y se muestra mensaje si se gana el juego
-function draw() {
-  background(220);
-  for (let card of cards) {
-    card.draw();
-  }
-  
-  // Mensaje de victoria si se han encontrado todas las parejas
-  if (matchedCount === totalPairs) {
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    fill(0);
-    text("¡Ganaste!", width / 2, height / 2);
-  }
-}
-
-// Función para manejar clics del mouse
+// p5.js mousePressed: maneja la selección de cartas
 function mousePressed() {
-  if (!canClick) return;
-  // Se busca si se hizo clic sobre alguna carta
+  if (gameState !== "playing" || !canClick) return;
+  
+  // Verifica si se hizo clic sobre alguna carta
   for (let card of cards) {
     if (card.contains(mouseX, mouseY) && !card.isFaceUp && !card.isMatched) {
       card.isFaceUp = true;
@@ -123,7 +151,7 @@ function mousePressed() {
     }
   }
   
-  // Si se han seleccionado dos cartas, se comprueba si son iguales
+  // Si se han seleccionado dos cartas, se comprueba si coinciden
   if (selectedCards.length === 2) {
     canClick = false;
     if (selectedCards[0].id === selectedCards[1].id) {
@@ -133,6 +161,10 @@ function mousePressed() {
       matchedCount++;
       selectedCards = [];
       canClick = true;
+      // Si se han encontrado todas las parejas, se cambia el estado del juego
+      if (matchedCount === totalPairs) {
+        gameState = "won";
+      }
     } else {
       // Si no coinciden, se voltean nuevamente después de 1 segundo
       setTimeout(() => {
@@ -152,3 +184,7 @@ function shuffleArray(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
 }
+
+// Asignamos los eventos a los botones
+startButton.addEventListener("click", startGame);
+restartButton.addEventListener("click", startGame);

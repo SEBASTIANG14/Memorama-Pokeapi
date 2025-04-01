@@ -6,12 +6,38 @@
     <!-- Incluimos la librería p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
     <style>
-      body { margin: 0; padding: 0; }
-      canvas { display: block; margin: auto; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f0f0f0;
+      }
+      #controls {
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 0 5px;
+        cursor: pointer;
+      }
+      canvas {
+        display: block;
+        margin: auto;
+      }
     </style>
   </head>
   <body>
-    <!-- Se incluye el archivo script.js -->
+    <div id="controls">
+      <button id="startButton">Iniciar Juego</button>
+      <button id="restartButton" style="display:none;">Reiniciar Juego</button>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>
